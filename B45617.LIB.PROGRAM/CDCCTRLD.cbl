@@ -1,0 +1,34 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CDCCTRLD.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ARCHIVO-SECUENCIAL ASSIGN TO LDCLIS
+           ORGANIZATION IS SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD ARCHIVO-SECUENCIAL.
+       01 REGISTRO-DATO.
+          05 DNI           PIC X(8).
+          05 NOMBRE        PIC X(20).
+          05 DIRECCION     PIC X(30).
+          05 DISTRITO      PIC X(15).
+          05 EDAD          PIC 99.
+          05 FILLER        PIC X(5).
+
+       WORKING-STORAGE SECTION.
+       01 FIN-ARCHIVO      PIC X VALUE 'N'.
+
+       PROCEDURE DIVISION.
+       INICIAR.
+           OPEN INPUT ARCHIVO-SECUENCIAL
+           PERFORM UNTIL FIN-ARCHIVO = 'S'
+              READ ARCHIVO-SECUENCIAL
+                 AT END
+                    MOVE 'S' TO FIN-ARCHIVO
+              END-READ
+              DISPLAY DNI, NOMBRE, DIRECCION, DISTRITO, EDAD
+           END-PERFORM
+           CLOSE ARCHIVO-SECUENCIAL
+           STOP RUN.

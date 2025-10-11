@@ -1,0 +1,104 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CDCBCTAS.
+       AUTHOR.     MACDOM.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ARCHIVO-ENTRADA ASSIGN TO CTAS
+               FILE STATUS IS FS-CUENTAS.
+           SELECT ARCHIVO-SALIDA ASSIGN TO REGCONT
+               FILE STATUS IS FS-REGRISTROS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD ARCHIVO-ENTRADA.
+       01 REGISTRO-ENTRADA.
+         05 MONEDA             PIC X(3).
+         05 CUENTA             PIC X(10).
+         05 MONTO              PIC 9(8)V99.
+         05 FILLER             PIC X(57).
+
+
+       FD ARCHIVO-SALIDA.
+       01 REGISTRO-SALIDA .
+         05 MONEDA-SALIDA      PIC X(3).
+         05 CUENTA-SALIDA      PIC X(10).
+         05 MONTO-SALIDA       PIC 9(8)V99.
+         05 FILL-OUT           PIC X(57) VALUE  SPACES .
+
+       WORKING-STORAGE SECTION.
+       01 FIN-DE-ARCHIVO       PIC X VALUE 'N'.
+       01 FS-CUENTAS           PIC 99.
+       01 FS-REGRISTROS        PIC 99.
+
+
+       01 TOTAL-MONTOS.
+         05 MONEDA-ACTUAL      PIC X(3) VALUE SPACES.
+         05 SUMA-MONTOS        PIC 9(10)V99 VALUE 0.
+
+       01 SWITCH.
+         05 SWITCH-FIN         PIC XX VALUE 'NO'.
+           88 FIN-OK           VALUE 'SI'.
+           88 FIN-NO           VALUE 'NO'.
+
+       PROCEDURE DIVISION.
+           PERFORM START-PROGRAM
+           PERFORM PROCESS-FILE
+           PERFORM FINALIZE.
+
+       START-PROGRAM.
+           INITIALIZE SWITCH-FIN
+           OPEN INPUT ARCHIVO-ENTRADA OUTPUT ARCHIVO-SALIDA
+
+           PERFORM READ-FILE.
+
+       READ-FILE.
+           READ ARCHIVO-ENTRADA
+           IF FS-CUENTAS = 10
+               PERFORM ESCRIBIR-REGISTRO-SALIDA
+               SET FIN-OK TO TRUE
+           ELSE
+               IF FS-CUENTAS NOT = 0
+                   DISPLAY 'ERROR LEYENDO CLIENTES: ' FS-CUENTAS
+                   SET FIN-OK TO TRUE
+               END-IF
+           END-IF.
+
+
+
+       PROCESS-FILE.
+           IF (NOT FIN-OK)
+               PERFORM PROCESS-RECORDS UNTIL FIN-OK
+           END-IF.
+
+
+       PROCESS-RECORDS.
+           IF MONEDA-ACTUAL NOT EQUAL MONEDA
+               IF (MONEDA-ACTUAL NOT EQUAL TO SPACE)
+                   DISPLAY 'MONEDA ' MONEDA-ACTUAL
+                   PERFORM ESCRIBIR-REGISTRO-SALIDA
+               END-IF
+
+               MOVE MONEDA TO MONEDA-ACTUAL
+               MOVE 0 TO SUMA-MONTOS
+           END-IF
+           ADD MONTO TO SUMA-MONTOS
+
+           PERFORM READ-FILE.
+
+       ESCRIBIR-REGISTRO-SALIDA.
+           MOVE SPACES TO CUENTA-SALIDA
+           MOVE SPACES TO FILL-OUT
+
+           MOVE MONEDA-ACTUAL TO MONEDA-SALIDA
+           MOVE SUMA-MONTOS TO MONTO-SALIDA
+
+           DISPLAY  REGISTRO-SALIDA
+
+           WRITE REGISTRO-SALIDA .
+
+       FINALIZE.
+           CLOSE ARCHIVO-ENTRADA
+           CLOSE ARCHIVO-SALIDA
+           STOP RUN.

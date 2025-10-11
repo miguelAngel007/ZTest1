@@ -1,0 +1,166 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CDCCSALD.
+       AUTHOR.     MACDOM.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT VSAM-FILE ASSIGN TO VSAMDS
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS DYNAMIC
+               RECORD KEY IS REGISTRO-CLAVE
+               FILE STATUS IS FS-VSAM.
+
+           SELECT MOVS-FILE ASSIGN TO MVFILE
+               FILE STATUS IS FS-REGRISTROS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD VSAM-FILE
+           RECORD CONTAINS 40 CHARACTERS.
+       01 REGISTRO-VSAM.
+           05 REGISTRO-CLAVE     PIC X(10).
+           05 REGISTRO-NOMBRE    PIC X(20).
+           05 REGISTRO-SALDO     PIC 9(8)V99.
+
+       FD MOVS-FILE.
+       01 REGISTRO-MOV.
+         05 MOV-DATE-OUT.
+           10 YEAR             PIC 9(4).
+           10 MONTH            PIC 9(2).
+           10 DAY-DD           PIC 9(2).
+           10 HOUR             PIC 9(2).
+           10 MIN              PIC 9(2).
+           10 SEC              PIC 9(2).
+         05 OPERACION-OUT      PIC X.
+         05 NRO-CUENTA-OUT     PIC X(10).
+         05 NOMBRE-OUT         PIC X(20).
+         05 MONTO-OUT          PIC 9(8)V99.
+      *  05 FILL-OUT           PIC X(27) VALUE  SPACES .
+
+       WORKING-STORAGE SECTION.
+       01 FS-VSAM                PIC XX.
+       01 FS-REGRISTROS          PIC 99.
+       01 WS-NOW                 PIC X(21).
+       01 WS-NRO-CUENTA          PIC X(10).
+       01 WS-OPERACION           PIC X.
+       01 WS-MONTO               PIC 9(8)V99.
+       01 WS-MONTO-TXT           PIC X(10).
+       01 WS-MONTO-NUMERICO      PIC 9(10).
+       01 WS-PARM-TEXT           PIC X(23).
+
+       LINKAGE SECTION.
+       01 PARM-AREA.
+           05 PARM-LONGITUD      PIC S9(4) COMP.
+           05 PARM-TEXTO         PIC X(23).
+
+       PROCEDURE DIVISION USING PARM-AREA.
+           PERFORM 100-SET-PARAMS
+           PERFORM 200-OPEN-FILES
+           PERFORM 600-FINALIZE .
+
+
+
+       100-SET-PARAMS.
+           DISPLAY "100-SET-PARAMS"
+
+           MOVE PARM-TEXTO TO WS-PARM-TEXT
+
+           UNSTRING WS-PARM-TEXT
+               DELIMITED BY '|'
+               INTO WS-NRO-CUENTA, WS-OPERACION, WS-MONTO-TXT
+               MOVE WS-MONTO-TXT TO WS-MONTO-NUMERICO
+               COMPUTE WS-MONTO = WS-MONTO-NUMERICO   / 100
+               DISPLAY "WS-MONTO: " WS-MONTO .
+
+
+
+       200-OPEN-FILES.
+           DISPLAY "200-OPEN-VMSAM-FILE"
+
+           OPEN I-O VSAM-FILE
+           IF FS-VSAM NOT = "00"
+               DISPLAY "Error al abrir archivo VSAM. Código: " FS-VSAM
+               STOP RUN
+           END-IF
+
+           MOVE WS-NRO-CUENTA TO REGISTRO-CLAVE
+           READ VSAM-FILE
+               INVALID KEY
+                   DISPLAY "Registro no encontrado"
+                   CLOSE VSAM-FILE
+                   STOP RUN
+           END-READ
+
+           DISPLAY "Registro encontrado:"
+           DISPLAY "Clave  : " REGISTRO-CLAVE
+           DISPLAY "Nombre : " REGISTRO-NOMBRE
+           DISPLAY "Saldo  : " REGISTRO-SALDO
+
+           IF WS-OPERACION = "R"
+               PERFORM 300-RETIRO
+           ELSE
+               PERFORM 400-DEPOSITO
+           END-IF.
+
+
+       300-RETIRO.
+           DISPLAY "300-RETIRO"
+           IF WS-MONTO > REGISTRO-SALDO
+               DISPLAY "Saldo insuficiente para retiro"
+           ELSE
+
+      *        SUBTRACT WS-MONTO FROM REGISTRO-SALDO
+               COMPUTE REGISTRO-SALDO = REGISTRO-SALDO  - WS-MONTO
+               REWRITE REGISTRO-VSAM
+                   INVALID KEY
+                       DISPLAY "Error al actualizar el registro"
+                   NOT INVALID KEY
+                       DISPLAY "R.exitoso.Nuevo saldo: " REGISTRO-SALDO
+                       PERFORM 500-SAVE-MOVE
+               END-REWRITE
+
+           END-IF.
+
+
+       400-DEPOSITO.
+           DISPLAY "400-DEPOSITO"
+      *    ADD WS-MONTO TO REGISTRO-SALDO
+           COMPUTE REGISTRO-SALDO = REGISTRO-SALDO + WS-MONTO
+           REWRITE REGISTRO-VSAM
+               INVALID KEY
+                   DISPLAY "Error al actualizar el registro"
+               NOT INVALID KEY
+                   DISPLAY "D. exitoso. Nuevo saldo: " REGISTRO-SALDO
+                   PERFORM 500-SAVE-MOVE
+           END-REWRITE.
+
+       500-SAVE-MOVE.
+           OPEN OUTPUT MOVS-FILE
+
+           MOVE FUNCTION CURRENT-DATE TO WS-NOW
+           MOVE WS-NOW(1:4)   TO YEAR
+           MOVE WS-NOW(5:2)   TO MONTH
+           MOVE WS-NOW(7:2)   TO DAY-DD
+           MOVE WS-NOW(9:2)   TO HOUR
+           MOVE WS-NOW(11:2)  TO MIN
+           MOVE WS-NOW(13:2)  TO SEC
+
+           MOVE WS-OPERACION       TO OPERACION-OUT
+           MOVE REGISTRO-CLAVE     TO NRO-CUENTA-OUT
+           MOVE REGISTRO-NOMBRE    TO NOMBRE-OUT
+           MOVE WS-MONTO           TO MONTO-OUT
+      *    MOVE SPACES TO FILL-OUT
+
+           WRITE REGISTRO-MOV
+
+           IF FS-REGRISTROS NOT = "00"
+               DISPLAY "Error al grabar movimiento: " FS-REGRISTROS
+           END-IF
+
+           CLOSE MOVS-FILE.
+
+
+       600-FINALIZE.
+           DISPLAY "500-FINALIZE"
+           CLOSE VSAM-FILE
+           STOP RUN.

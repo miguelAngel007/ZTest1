@@ -1,0 +1,62 @@
+***********************************************************************
+***   *         *
+***   *         *
+***********************************************************************
+*IDAPL*OPE
+*OBJET*****************************************************************
+*OBJET*** MAPA DEL CDCM17F                                           **
+*OBJET*****************************************************************
+CDCM17F  DFHMSD TYPE=&SYSPARM,MODE=INOUT,CTRL=(FREEKB,ALARM),          *
+               LANG=COBOL,TIOAPFX=YES,STORAGE=AUTO
+*********************************************************************
+CDCM17F  DFHMDI SIZE=(24,80),LINE=01,COLUMN=01
+         DFHMDF POS=(01,01),LENGTH=09,ATTRB=(ASKIP,BRT),               *
+               INITIAL='Interbank'
+         DFHMDF POS=(1,21),LENGTH=33,                                  *
+               INITIAL='CONSULTA DE PERSONAS POR DNI',                 *
+               ATTRB=(ASKIP,BRT)
+         DFHMDF POS=(01,69),LENGTH=11,ATTRB=(ASKIP,BRT),               *
+               INITIAL='Operaciones'
+         DFHMDF POS=(2,1),LENGTH=19,INITIAL='CDCCTRFD-CDCM17F',        *
+               ATTRB=(ASKIP,BRT)
+MHORA10  DFHMDF POS=(02,61),LENGTH=08,ATTRB=(ASKIP,BRT,FSET),          *
+               INITIAL='HH:MM:SS'
+MFECH10  DFHMDF POS=(02,70),LENGTH=10,ATTRB=(ASKIP,BRT,FSET),          *
+               INITIAL='XX/XX/XXXX'
+         DFHMDF POS=(03,01),LENGTH=79,ATTRB=(ASKIP,BRT),               *
+               INITIAL='-----------------------------------------------*
+               --------------------------------'
+         DFHMDF POS=(4,2),LENGTH=13,INITIAL='Ingrese DNI',             *
+               ATTRB=ASKIP
+DNI      DFHMDF POS=(4,16),LENGTH=8,INITIAL='________',                *
+               ATTRB=(NUM,FSET,IC,BRT)
+NOM      DFHMDF POS=(6,2),LENGTH=77,                                   *
+               ATTRB=(ASKIP,NORM),HILIGHT=OFF,COLOR=BLUE
+CAP      DFHMDF POS=(7,2),LENGTH=77,                                   *
+               ATTRB=(ASKIP,NORM),HILIGHT=OFF,COLOR=BLUE
+CAM      DFHMDF POS=(8,2),LENGTH=77,                                   *
+               ATTRB=(ASKIP,NORM),HILIGHT=OFF,COLOR=BLUE
+LBLKEY   DFHMDF POS=(22,2),LENGTH=77,                                  *
+               ATTRB=(ASKIP,BRT)
+
+         DFHMDF POS=(21,01),LENGTH=79,ATTRB=(ASKIP,BRT),               *
+               INITIAL='-----------------------------------------------*
+               --------------------------------'
+         DFHMDF POS=(23,02),LENGTH=03,ATTRB=(ASKIP,BRT),               X
+               INITIAL='PF1'
+         DFHMDF POS=(23,6),LENGTH=3,INITIAL='PF2',                     *
+               ATTRB=(ASKIP,BRT)
+         DFHMDF POS=(23,10),LENGTH=3,INITIAL='PF3',                    *
+               ATTRB=(ASKIP,BRT)
+         DFHMDF POS=(23,14),LENGTH=3,INITIAL='PF4',                    *
+               ATTRB=(ASKIP,BRT)
+         DFHMDF POS=(23,18),LENGTH=5,INITIAL='Enter',                  *
+               ATTRB=(ASKIP,BRT)
+         DFHMDF POS=(23,24),LENGTH=11,INITIAL='Buscar DNI',            *
+               ATTRB=(ASKIP,NORM)
+         DFHMDF POS=(24,45),LENGTH=08,ATTRB=(ASKIP,NORM),              X
+               INITIAL='        '
+         DFHMDF POS=(24,59),LENGTH=07,ATTRB=(ASKIP,NORM),              X
+               INITIAL='       '
+         DFHMSD TYPE=FINAL
+         END

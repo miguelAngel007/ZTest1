@@ -1,0 +1,75 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CDCCDID.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT ARCHIVO-ENTRADA ASSIGN TO 'ENTRADA.DAT'
+               ORGANIZATION IS LINE SEQUENTIAL.
+           SELECT ARCHIVO-SALIDA ASSIGN TO 'SALIDA.DAT'
+               ORGANIZATION IS LINE SEQUENTIAL.
+       DATA DIVISION.
+       FILE SECTION.
+       FD  ARCHIVO-ENTRADA.
+       01  REG-ENTRADA.
+           05 DNI               PIC X(10).
+           05 NOMBRE            PIC X(30).
+           05 DIRECCION         PIC X(50).
+           05 PROFESION         PIC X(30).
+           05 FECHA-NACIM       PIC 9(8).
+       FD  ARCHIVO-SALIDA.
+       01  REG-SALIDA.
+           05 DNI-S             PIC X(10).
+           05 NOMBRE-S          PIC X(30).
+           05 DIRECCION-S       PIC X(50).
+           05 PROFESION-S       PIC X(30).
+           05 FECHA-NACIM-S     PIC 9(8).
+           05 DIAS-VIVIDOS-S    PIC 9(7).
+       WORKING-STORAGE SECTION.
+       77  FIN-ENTRADA              PIC X VALUE 'N'.
+       77  FECHA-HOY                PIC 9(8).
+       77  AAAA-HOY                 PIC 9(4).
+       77  MM-HOY                   PIC 9(2).
+       77  DD-HOY                   PIC 9(2).
+       77  AAAA-NAC                 PIC 9(4).
+       77  MM-NAC                   PIC 9(2).
+       77  DD-NAC                   PIC 9(2).
+       77  DIAS-VIVIDOS             PIC 9(7).
+       PROCEDURE DIVISION.
+       PRINCIPAL.
+           DISPLAY 'Ingrese la fecha de hoy (AAAAMMDD): ' WITH NO ADVANCING
+           ACCEPT FECHA-HOY
+           MOVE FECHA-HOY(1:4) TO AAAA-HOY
+           MOVE FECHA-HOY(5:2) TO MM-HOY
+           MOVE FECHA-HOY(7:2) TO DD-HOY
+           OPEN INPUT ARCHIVO-ENTRADA
+           OPEN OUTPUT ARCHIVO-SALIDA
+           PERFORM UNTIL FIN-ENTRADA = 'S'
+               READ ARCHIVO-ENTRADA
+                   AT END
+                       MOVE 'S' TO FIN-ENTRADA
+                   NOT AT END
+                       PERFORM CALCULAR-DIAS
+                       MOVE DNI TO DNI-S
+                       MOVE NOMBRE TO NOMBRE-S
+                       MOVE DIRECCION TO DIRECCION-S
+                       MOVE PROFESION TO PROFESION-S
+                       MOVE FECHA-NACIM TO FECHA-NACIM-S
+                       MOVE DIAS-VIVIDOS TO DIAS-VIVIDOS-S
+                       WRITE REG-SALIDA
+               END-READ
+           END-PERFORM
+           CLOSE ARCHIVO-ENTRADA
+           CLOSE ARCHIVO-SALIDA
+           DISPLAY 'Proceso finalizado.'
+           STOP RUN.
+
+       CALCULAR-DIAS.
+           MOVE FECHA-NACIM(1:4) TO AAAA-NAC
+           MOVE FECHA-NACIM(5:2) TO MM-NAC
+           MOVE FECHA-NACIM(7:2) TO DD-NAC
+           COMPUTE DIAS-VIVIDOS = FUNC-DIAS-VIVIDOS(AAAA-NAC, MM-NAC, DD-NAC,
+                                                   AAAA-HOY, MM-HOY, DD-HOY).
+
+       DECLARATIVES.
+       FUNC-DIAS-VIVIDOS SECTION.
+           EXIT.
