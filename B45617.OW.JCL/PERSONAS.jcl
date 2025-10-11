@@ -1,0 +1,16 @@
+//PERFC    JOB (B45617),'MIGUEL.ANGEL.CHAVEZ',CLASS=9,MSGCLASS=S
+//******************************************************************
+//*   SELECCION DE REGISTROS POR FECHA DE NACIMIENTO (DFSORT)
+//******************************************************************
+//STEP1    EXEC PGM=SORT
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=B45617.OW.SOURCE3(PERSONAS),DISP=SHR
+//SORTOUT  DD DSN=B45617.OW.SOURCE3(PEROUT),DISP=SHR
+//SYSIN    DD *
+ INCLUDE COND=((75,4,CH,GT,C'1970'),OR,
+ ((75,4,CH,EQ,C'1970'),AND,(73,2,CH,GT,C'05')),OR,
+ ((75,4,CH,EQ,C'1970'),AND,(73,2,CH,EQ,C'05'),AND,(71,2,CH,GT,C'04')))
+ SORT FIELDS=COPY
+/*
+//
+
