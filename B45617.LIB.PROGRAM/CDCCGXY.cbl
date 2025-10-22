@@ -32,6 +32,7 @@
        01  WS-AUX_3           PIC X(20).
        01  WS-AUX_4           PIC X(20).
        01  WS-AUX_5           PIC X(20).
+       01  WS-AUX_6           PIC X(20).
 
        PROCEDURE DIVISION.
        INICIO.
