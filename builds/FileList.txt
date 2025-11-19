@@ -1,4 +1,0 @@
-CDCCGXY.cbl
-CDCBCTAS.cbl
-CDCTRLD.cbl
-CDCCG1FO.cbl
